@@ -3,3 +3,4 @@ simulation
 db
 incremental_db
 *.bak
+*.swp
