@@ -7,12 +7,16 @@ USE IEEE.STD_LOGIC_ARITH.ALL;
 entity wave_your_hand is
 	port(
 		clk: in std_logic;
-		uss_trig: out std_logic;
-		uss_echo: in std_logic;
-		screen_output: out std_logic_vector(0 to 47) := x"00FFFF00FFFF";
+		rst: in std_logic;
 		
-		-- below are test
-		dist: out std_logic_vector(7 downto 0)
+		uss_trig_0: out std_logic;
+		uss_echo_0: in std_logic;
+		
+		uss_trig_1: out std_logic;
+		uss_echo_1: in std_logic;
+		screen_output: out std_logic_vector(0 to 47);
+		
+		dist_out: out std_logic_vector(0 to 3)
 	);
 end wave_your_hand;
 
@@ -20,8 +24,8 @@ architecture arch_wave_your_hand of wave_your_hand is
 	component uss is
 		port(
 			clk: in std_logic;
-			dist: out std_logic_vector(7 downto 0);
 			
+			dist: out integer range 0 to 15;
 			uss_trig: out std_logic := '0';
 			uss_echo: in std_logic
 		);
@@ -30,66 +34,52 @@ architecture arch_wave_your_hand of wave_your_hand is
 	component screen is
 		port(
 			clk: in std_logic;
-			red: in std_logic_vector(0 to 127);
-			green: in std_logic_vector(0 to 127);
+			
+			trig: out std_logic;
+			row_out: out integer range 0 to 7;
+			col_out: out integer range 0 to 15;
+			led_data: in std_logic;
+
 			output: out std_logic_vector(0 to 47)
 		);
 	end component;
 	
-	component light is
+	
+	component Dot is
 		port(
-			clk: in std_logic ;
-			red: in std_logic_vector(0 to 63);
-			green: in std_logic_vector(0 to 63);
-			output: out std_logic_vector(0 to 23) -- low 8 bits are row
-			-- from low to high:
-			-- row(0-7), red(8-15), green(16-23)
+			clk: in std_logic;
+
+			screen_trig: in std_logic;
+			screen_row: in integer range 0 to 7;
+			screen_col: in integer range 0 to 15;
+			screen_data: out std_logic
 		);
 	end component;
 	
-	
-	signal red: std_logic_vector(0 to 127);--:= "10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000";
-	signal green: std_logic_vector(0 to 127);
-	--signal red: std_logic_vector(0 to 63);
-	--signal green: std_logic_vector(0 to 63);
-	
-	signal cnt: integer range 0 to 65535 := 0;
-begin
-	green <= red;
-	--red <= "0101010110101010010101011010101001010101101010100101010110101010";
-	--green <= "1010101001010101101010100101010110101010010101011010101001010101";
-	uss_comp: uss port map(clk, dist, uss_trig, uss_echo);
-	--screen_output(0) <= '1';
-	--screen_output(8) <= '0';
-	--light_comp: light port map(clk, red, green, screen_output(0 to 23));
-	screen_comp: screen port map(clk, red, green, screen_output);
-	
-	process (clk)
-		variable red_cnt : integer range 0 to 127 := 0;
-		variable red_inner: std_logic_vector(0 to 127);
-	begin
-		if clk'EVENT and clk = '0' then
-			if cnt = 500000 then
-				if red_cnt = 0 then
-					red_inner(127) := '0';
-					red_inner(0) := '1';
-					red_cnt := red_cnt + 1;
-				elsif red_cnt = 127 then
-					red_inner(126) := '0';
-					red_inner(127) := '1';
-					red_cnt := 0;
-				else
-					red_inner(red_cnt - 1) := '0';
-					red_inner(red_cnt) := '1';
-					red_cnt := red_cnt + 1;
-				end if;
-				
-				cnt <= 0;
-			else
-				cnt <= cnt + 1; 
-			end if;
+	component man is
+		port(
+			clk: in std_logic;
+			rst: in std_logic; -- '0' trigger
 			
-			red <= red_inner;
-		end if;
-	end process;
+			
+			dist: in integer range 0 to 15;
+			screen_trig: in std_logic;
+			screen_row: in integer range 0 to 7;
+			screen_col: in integer range 0 to 15;
+			screen_data: out std_logic
+		);
+	end component;
+	
+	signal screen_trig: std_logic := '0';
+	signal screen_led_data: std_logic;
+	signal screen_row: integer range 0 to 7;
+	signal screen_col: integer range 0 to 15;
+	
+	signal dist_0: integer range 0 to 15;
+	signal dist_1: integer range 0 to 15;
+begin
+	--uss_comp_0: uss port map(clk, dist_0, uss_trig_0, uss_echo_0);
+	uss_comp_1: uss port map(clk, dist_1, uss_trig_1, uss_echo_1);
+	screen_comp: screen port map(clk, screen_trig, screen_row, screen_col, screen_led_data, screen_output);
+	man_comp: man port map(clk, rst, dist_1, screen_trig, screen_row, screen_col, screen_led_data);
 end arch_wave_your_hand;

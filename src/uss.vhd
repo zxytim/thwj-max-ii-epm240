@@ -9,7 +9,7 @@ USE IEEE.STD_LOGIC_ARITH.ALL;
 entity uss is
 	port(
 		clk: in std_logic;
-		dist: out std_logic_vector(7 downto 0); -- in cm
+		dist: out integer range 0 to 15; -- in cm
 		
 		uss_trig: out std_logic := '0';
 		uss_echo: in std_logic
@@ -17,10 +17,23 @@ entity uss is
 end uss;
 
 architecture arch_uss of uss is
+	constant CLK_FREQ: integer := 2000000;
+	constant TRIG_INTERVAL_CNT: integer := CLK_FREQ / 40; -- 1/40 sec = 25 ms
+	constant TRIG_TIME_CNT: integer := CLK_FREQ / 100000; -- 1/100000 sec = 10 us
+	
+	constant ONE_CM_PER_CNT: integer := CLK_FREQ / 34000 * 2;
+	constant HALF_CM_PER_CNT: integer := ONE_CM_PER_CNT / 2;
+	
+	constant ONE_DIGIT_PER_CNT: integer := ONE_CM_PER_CNT * 5 / 8;
+	constant HALF_DIGIT_PER_CNT: integer := ONE_DIGIT_PER_CNT / 2;
+	
+	constant DIST_MIN: integer := 5;
+	constant DIST_MAX: integer := 20;
+	
 	signal echo_cnt: std_logic_vector(7 downto 0); -- 65.536ms -> 22m
 	signal trig_cnt: std_logic_vector(15 downto 0);
 	signal working: std_logic := '0';
-	signal dist_buf: std_logic_vector(7 downto 0); -- hex FF or dec 99
+	signal dist_buf: integer range 0 to DIST_MAX;
 begin	
 	process(clk, uss_echo, working)
 	begin
@@ -33,35 +46,36 @@ begin
 				--          = @echo_cnt / (2 * 10^6/34000*2)
 				--          = @echo_cnt /  117.6470588235294
 				-- when divide by 118, there is a approximately 0.3% error
-				if echo_cnt = 118 then
-					-- decimal
-					if dist_buf(3 downto 0) = "1001" then
-						dist_buf <= dist_buf + 7; -- (- 9 + 16)
-					else
+				if echo_cnt = ONE_DIGIT_PER_CNT then
+					if dist_buf /= DIST_MAX then
 						dist_buf <= dist_buf + 1;
 					end if;
 					echo_cnt <= x"00";
 				end if;
 				if uss_echo = '0' then -- end of one working cycle
 					working <= '0';
-					if echo_cnt >= 59 then
-						if dist_buf(3 downto 0) = "1001" then
-							dist <= dist_buf + 7; -- (- 9 + 16)
-						else
-							dist <= dist_buf + 1;
-						end if;
+					if dist_buf <= DIST_MIN then
+						dist <= 0;
 					else
-						dist <= dist_buf;
+						dist <= dist_buf - DIST_MIN;
 					end if;
+					-- round
+--					if echo_cnt >= HALF_DIGIT_CM_PER_CNT then
+--						if dist_buf /= 15 then
+--							dist <= dist_buf + 1;
+--						end if;
+--					else
+--						dist <= dist_buf;
+--					end if;
 				end if;
 			else -- when not working
 				if uss_echo = '1' then
 					echo_cnt <= x"00";
-					dist_buf <= x"00";
+					dist_buf <= 0;
 					working <= '1';	
-				elsif trig_cnt = 50000 then -- 25ms
+				elsif trig_cnt = TRIG_INTERVAL_CNT then
 					uss_trig <= '1';
-				elsif trig_cnt = 50000 + 20 then -- 10us pulse
+				elsif trig_cnt = TRIG_INTERVAL_CNT + TRIG_TIME_CNT then
 					uss_trig <= '0';
 					trig_cnt <= x"0000";
 				end if;

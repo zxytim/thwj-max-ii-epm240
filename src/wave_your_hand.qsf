@@ -52,12 +52,6 @@ set_global_assignment -name EDA_NETLIST_WRITER_OUTPUT_DIR simulation/modelsim -s
 set_global_assignment -name EDA_OUTPUT_DATA_FORMAT VHDL -section_id eda_simulation
 set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
 set_location_assignment PIN_12 -to clk
-set_location_assignment PIN_1 -to uss_trig
-set_location_assignment PIN_2 -to uss_echo
-set_location_assignment PIN_21 -to dist[11]
-set_location_assignment PIN_20 -to dist[10]
-set_location_assignment PIN_19 -to dist[9]
-set_location_assignment PIN_18 -to dist[8]
 set_location_assignment PIN_17 -to dist[7]
 set_location_assignment PIN_16 -to dist[6]
 set_location_assignment PIN_15 -to dist[5]
@@ -114,8 +108,19 @@ set_location_assignment PIN_49 -to screen_output[44]
 set_location_assignment PIN_48 -to screen_output[45]
 set_location_assignment PIN_47 -to screen_output[46]
 set_location_assignment PIN_43 -to screen_output[47]
+set_global_assignment -name VHDL_FILE "../../../tim/document/college/grade-two-spring/electric-experiment/wave_your_hand/src/wave_your_hand.vhd"
 set_global_assignment -name VHDL_FILE "../../../tim/document/college/grade-two-spring/electric-experiment/wave_your_hand/src/test_wave_your_hand.vhd"
-set_global_assignment -name VHDL_FILE "../../../../../tim/document/college/grade-two-spring/electric-experiment/wave_your_hand/wave_your_hand.vhd"
 set_global_assignment -name VHDL_FILE uss.vhd
-set_global_assignment -name VHDL_FILE light.vhd
 set_global_assignment -name VHDL_FILE screen.vhd
+set_global_assignment -name VHDL_FILE "../../../tim/document/college/grade-two-spring/electric-experiment/wave_your_hand/src/led.vhd"
+set_global_assignment -name VHDL_FILE "../../../tim/document/college/grade-two-spring/electric-experiment/wave_your_hand/src/man.vhd"
+set_global_assignment -name QIP_FILE ram.qip
+set_location_assignment PIN_2 -to uss_echo_0
+set_location_assignment PIN_4 -to uss_echo_1
+set_location_assignment PIN_1 -to uss_trig_0
+set_location_assignment PIN_3 -to uss_trig_1
+set_location_assignment PIN_18 -to dist_out[0]
+set_location_assignment PIN_19 -to dist_out[1]
+set_location_assignment PIN_20 -to dist_out[2]
+set_location_assignment PIN_21 -to dist_out[3]
+set_location_assignment PIN_44 -to rst

@@ -4,65 +4,103 @@ USE IEEE.STD_LOGIC_UNSIGNED.ALL ;
 USE IEEE.STD_LOGIC_ARITH.ALL;
 
 
+--
+-- LED clock frequency: 2M
+-- 
 entity screen is
 	port(
 		clk: in std_logic;
-		red: in std_logic_vector(0 to 127);
-		green: in std_logic_vector(0 to 127);
+		
+		trig: out std_logic;
+		row_out: out integer range 0 to 7;
+		col_out: out integer range 0 to 15;
+		led_data: in std_logic;
+
 		output: out std_logic_vector(0 to 47)
 	);
 end screen;
 
 architecture arch_screen of screen is
-	component light is
+	component LED is
 		port(
 			clk: in std_logic;
-			red: in std_logic_vector(0 to 63);
-			green: in std_logic_vector(0 to 63);
+
+			enable: in std_logic;
+			row: in integer range 0 to 7 := 0;
+			col: in integer range 0 to 7 := 0;
+			led_data: in std_logic;
+
 			output: out std_logic_vector(0 to 23)
 		);
 	end component;
 	
-	signal red_left: std_logic_vector(0 to 63);
-	signal red_right: std_logic_vector(0 to 63);
-	signal green_left: std_logic_vector(0 to 63);
-	signal green_right: std_logic_vector(0 to 63);
+	signal position_inner: integer range 0 to 63;
+	
+	signal row: integer range 0 to 7 := 0;
+	signal col: integer range 0 to 15 := 0;
+	signal col_led: integer range 0 to 7;
+	signal enable_left: std_logic;
+	signal enable_right: std_logic;
+	signal led_clk: std_logic;
 begin
-	--light_left: light port map(clk, red(0 to 63), green(0 to 63), output(0 to 23));
-	--light_right: light port map(clk, red(64 to 127), green(64 to 127), output(24 to 47));
-	red_left(0 to 7) <= red(0 to 7);
-	red_right(0 to 7) <= red(8 to 15);
-	red_left(8 to 15) <= red(16 to 23);
-	red_right(8 to 15) <= red(24 to 31);
-	red_left(16 to 23) <= red(32 to 39);
-	red_right(16 to 23) <= red(40 to 47);
-	red_left(24 to 31) <= red(48 to 55);
-	red_right(24 to 31) <= red(56 to 63);
-	red_left(32 to 39) <= red(64 to 71);
-	red_right(32 to 39) <= red(72 to 79);
-	red_left(40 to 47) <= red(80 to 87);
-	red_right(40 to 47) <= red(88 to 95);
-	red_left(48 to 55) <= red(96 to 103);
-	red_right(48 to 55) <= red(104 to 111);
-	red_left(56 to 63) <= red(112 to 119);
-	red_right(56 to 63) <= red(120 to 127);
-	green_left(0 to 7) <= green(0 to 7);
-	green_right(0 to 7) <= green(8 to 15);
-	green_left(8 to 15) <= green(16 to 23);
-	green_right(8 to 15) <= green(24 to 31);
-	green_left(16 to 23) <= green(32 to 39);
-	green_right(16 to 23) <= green(40 to 47);
-	green_left(24 to 31) <= green(48 to 55);
-	green_right(24 to 31) <= green(56 to 63);
-	green_left(32 to 39) <= green(64 to 71);
-	green_right(32 to 39) <= green(72 to 79);
-	green_left(40 to 47) <= green(80 to 87);
-	green_right(40 to 47) <= green(88 to 95);
-	green_left(48 to 55) <= green(96 to 103);
-	green_right(48 to 55) <= green(104 to 111);
-	green_left(56 to 63) <= green(112 to 119);
-	green_right(56 to 63) <= green(120 to 127);
+	
+	row_out <= row;
+	col_out <= col;
+	
+	enable_right <= not enable_left;
 
-	light_left: light port map(clk, red_left, green_left, output(0 to 23));
-	light_right: light port map(clk, red_right, green_right, output(24 to 47));
+	LED_left: LED port map(led_clk, enable_left, row, col, led_data, output(0 to 23));
+	LED_right: LED port map(led_clk, enable_right, row, col, led_data, output(24 to 47)); -- col is overflowed to the right value;
+	
+	process (clk)
+		variable cnt: integer range 0 to 3 := 0;
+	begin
+		if clk'EVENT and clk = '0' then
+			if col < 8 then
+				enable_left <= '1';
+			else
+				enable_left <= '0';
+			end if;
+			
+			case cnt is
+				when 0 => -- logic compute data
+					trig <= '1';
+				when 1 => -- led read data
+					led_clk <= '1';
+				when 2 =>
+				
+					-- LET-IT-OVERFLOW
+					if col = 15 then
+						row <= row + 1;
+					end if;
+					col <= col + 1;
+					
+					-- DO NOT LET IT OVERFLOW
+--					if row = 7 then
+--						if col = 15 then
+--							col <= 0;
+--							row <= 0;
+--						else
+--							col <= col + 1;
+--						end if;
+--					else
+--						if col = 15 then
+--							col <= 0;
+--							row <= row + 1;
+--						else
+--							col <= col + 1;
+--						end if;
+--					end if;
+					trig <= '0';
+				when 3 =>
+					led_clk <= '0';
+			end case;
+			
+			if cnt = 3 then
+				cnt := 0;
+			else
+				cnt := cnt + 1;
+			end if;
+		end if;
+	end process;
 end arch_screen;
