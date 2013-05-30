@@ -24,7 +24,7 @@ architecture arch_wave_your_hand of wave_your_hand is
 	component uss is
 		port(
 			clk: in std_logic;
-			man_x_speed_out: out integer range -2 to 2;
+			man_x_speed_out: out integer range -1 to 1;
 			--dist: out integer range 0 to 15;
 			uss_trig: out std_logic := '0';
 			uss_echo: in std_logic
@@ -61,7 +61,7 @@ architecture arch_wave_your_hand of wave_your_hand is
 			clk: in std_logic;
 			rst: in std_logic; -- '0' trigger
 			
-			man_x_speed: in integer range -2 to 2;
+			man_x_speed: in integer range -1 to 1;
 			
 			--dist: in integer range 0 to 15;
 --			output: out std_logic_vector(0 to 47)

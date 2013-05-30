@@ -16,10 +16,25 @@ end man_on_a_plat;
 
 architecture arch_man_on_a_plat of man_on_a_plat is
 begin
-	result <= ((man_y + 1) = plat_y) and ((man_x = plat_x) or (man_x + 1 = plat_x) or (man_x = plat_x + 1));
+	result <= (man_y = (plat_y + 1)) and ((man_x = plat_x) or (man_x + 1 = plat_x) or (man_x = plat_x + 1));
 end arch_man_on_a_plat;
 
-
+-------------------------------
+--
+--LIBRARY IEEE ; 
+--USE IEEE.STD_LOGIC_1164.ALL ; 
+--USE IEEE.STD_LOGIC_UNSIGNED.ALL ; 
+--USE IEEE.STD_LOGIC_ARITH.ALL;
+--use ieee.numeric_std.all
+--
+--entity pos_has_man is
+--	port(
+--		man_x: in integer range 0 to 7;
+--		man_y: in integer range 0 to 15;
+--		screen_row, 
+--	);
+--	screen_row = man_x and (screen_col = man_y or screen_col = man_y)
+--end pos_has_a_plat;
 
 ------------------------------
 
@@ -60,7 +75,7 @@ entity man is
 		rst: in std_logic; -- '0' trigger
 
 		--dist: in integer range 0 to 15;
-		man_x_speed: in integer range -2 to 2;
+		man_x_speed: in integer range -1 to 1;
 --		output: out std_logic_vector(0 to 47)
 		screen_trig: in std_logic;
 		screen_row: in integer range 0 to 7;
@@ -195,7 +210,8 @@ architecture arch_man of man is
 	--mem_comp: mem_spi_altufm_spi_5bl port map(ncs => mem_ncs, sck => mem_sck, si => mem_si, so => mem_so);
 	
 	logic: process(clk, rst, man_x_speed)
-		variable clk_man_fall: integer range 0 to CNT_MAN_FALL := CNT_MAN_FALL / 2;
+		constant CLK_MAN_FALL_INIT: integer := CNT_MAN_FALL / 2;
+		variable clk_man_fall: integer range 0 to CNT_MAN_FALL := CLK_MAN_FALL_INIT;
 		variable clk_screen_roll: integer range 0 to CNT_SCREEN_ROLL := 0;
 		variable cnt_screen_roll_new_plat: integer range 0 to 3;
 		
@@ -239,7 +255,7 @@ architecture arch_man of man is
 					when GS_INIT =>
 						man_x <= 4;
 						man_y <= 12;
-						clk_man_fall := CNT_MAN_FALL / 2;
+						clk_man_fall := CLK_MAN_FALL_INIT;
 						clk_screen_roll := 0;
 						cnt_screen_roll_new_plat := 0;
 						plat_x <= (5, 1, 2);
@@ -258,8 +274,8 @@ architecture arch_man of man is
 								-- man fall
 								man_y <= man_y - 1;
 							end if;
-						elsif clk_screen_roll = 0 then -- platform roll up, shall not occur at the same time as man fall
 							man_x <= man_x + man_x_speed;
+						elsif clk_screen_roll = 0 then -- platform roll up, shall not occur at the same time as man fall
 							if on_plat then
 								-- move the man up
 								man_y <= man_y + 1;
@@ -291,18 +307,22 @@ architecture arch_man of man is
 				
 			end if;
 			
-			if clk_man_fall = CNT_MAN_FALL then
-				clk_man_fall := 0;
-			else
-				clk_man_fall := clk_man_fall + 1;
-			end if;
+--			if clk_man_fall = CNT_MAN_FALL then
+--				clk_man_fall := 0;
+--			else
+--				clk_man_fall := clk_man_fall + 1;
+--			end if;
+--			
+--			if clk_screen_roll = CNT_SCREEN_ROLL then
+--				clk_screen_roll := 0;
+--			else
+--				clk_screen_roll := clk_screen_roll + 1;
+--			end if;
+				
+			clk_man_fall := clk_man_fall + 1;
+			clk_screen_roll := clk_screen_roll + 1;
 			
-			if clk_screen_roll = CNT_SCREEN_ROLL then
-				clk_screen_roll := 0;
-			else
-				clk_screen_roll := clk_screen_roll + 1;
-			end if;
-			random := random + man_x_speed;
+			--random := random + man_x_speed;
 			--plat_scene <= plat_scene_var;
 			
 			--man_pos := man_y * 8 + man_x;
@@ -366,7 +386,7 @@ architecture arch_man of man is
 			end if;
 			
 			-- draw man
-			if screen_row = man_x and (screen_col = man_y + 2 or screen_col = man_y + 3) then
+			if screen_row = man_x and (screen_col = man_y or (screen_col = man_y + 1)) then
 				screen_output_inner := '1';
 			end if;
 			
