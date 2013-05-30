@@ -69,16 +69,34 @@ begin
 					led_clk <= '1';
 				when 2 =>
 				
-					-- LET-IT-OVERFLOW
+--					-- LET-IT-OVERFLOW
+--					if col = 15 then
+--						row <= row + 1;
+--					end if;
+--					col <= col + 1;
+					-- DO-NOT-LET-IT-OVERFLOW
 					if col = 15 then
-						row <= row + 1;
+						col <= 0;
+						if row = 7 then
+							row <= 0;
+						else
+							row <= row + 1;
+						end if;
+					else
+						col <= col + 1;
 					end if;
-					col <= col + 1;
+					
 					trig <= '0';
 				when 3 =>
 					led_clk <= '0';
 			end case;
-			cnt := cnt + 1;
+			
+--			cnt := cnt + 1;
+			if cnt = 3 then
+				cnt := 0;
+			else
+				cnt := cnt + 1;
+			end if;
 		end if;
 	end process;
 end arch_screen;

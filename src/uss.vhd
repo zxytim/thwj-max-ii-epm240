@@ -9,7 +9,8 @@ USE IEEE.STD_LOGIC_ARITH.ALL;
 entity uss is
 	port(
 		clk: in std_logic;
-		dist: out integer range 0 to 15; -- in cm
+		--dist: out integer range 0 to 15; -- in cm
+		man_x_speed_out: out integer range -2 to 2;
 		
 		uss_trig: out std_logic := '0';
 		uss_echo: in std_logic
@@ -24,17 +25,20 @@ architecture arch_uss of uss is
 	constant ONE_CM_PER_CNT: integer := CLK_FREQ / 34000 * 2;
 	constant HALF_CM_PER_CNT: integer := ONE_CM_PER_CNT / 2;
 	
-	constant ONE_DIGIT_PER_CNT: integer := ONE_CM_PER_CNT * 5 / 8;
+	constant ONE_DIGIT_PER_CNT: integer := ONE_CM_PER_CNT * 5 * 3 / 8;
 	constant HALF_DIGIT_PER_CNT: integer := ONE_DIGIT_PER_CNT / 2;
 	
-	constant DIST_MIN: integer := 5;
+	constant DIST_MIN: integer := 6;
 	constant DIST_MAX: integer := 20;
 	
 	signal echo_cnt: std_logic_vector(7 downto 0); -- 65.536ms -> 22m
 	signal trig_cnt: std_logic_vector(15 downto 0);
 	signal working: std_logic := '0';
 	signal dist_buf: integer range 0 to DIST_MAX;
+	signal man_x_speed: integer range -4 to 2;
 begin	
+
+	
 	process(clk, uss_echo, working)
 	begin
 		if clk'EVENT and clk = '1' then
@@ -47,18 +51,19 @@ begin
 				--          = @echo_cnt /  117.6470588235294
 				-- when divide by 118, there is a approximately 0.3% error
 				if echo_cnt = ONE_DIGIT_PER_CNT then
-					if dist_buf /= DIST_MAX then
-						dist_buf <= dist_buf + 1;
+					if man_x_speed	/= 2 then
+						man_x_speed <= man_x_speed + 1;
 					end if;
 					echo_cnt <= x"00";
 				end if;
 				if uss_echo = '0' then -- end of one working cycle
 					working <= '0';
-					if dist_buf <= DIST_MIN then
-						dist <= 0;
+					if man_x_speed < -2 then
+						man_x_speed_out <= -2;
 					else
-						dist <= dist_buf - DIST_MIN;
+						man_x_speed_out <= man_x_speed;
 					end if;
+					
 					-- round
 --					if echo_cnt >= HALF_DIGIT_CM_PER_CNT then
 --						if dist_buf /= 15 then
@@ -69,9 +74,9 @@ begin
 --					end if;
 				end if;
 			else -- when not working
-				if uss_echo = '1' then
+				if uss_echo = '1' then -- start working
 					echo_cnt <= x"00";
-					dist_buf <= 0;
+					man_x_speed <= -4;
 					working <= '1';	
 				elsif trig_cnt = TRIG_INTERVAL_CNT then
 					uss_trig <= '1';
