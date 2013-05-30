@@ -1,0 +1,7 @@
+set_global_assignment -name IP_TOOL_NAME "ALTUFM_PARALLEL"
+set_global_assignment -name IP_TOOL_VERSION "12.1"
+set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) "para.vhd"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "para.bsf"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "para_inst.vhd"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "para.inc"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "para.cmp"]

@@ -63,6 +63,8 @@ architecture arch_wave_your_hand of wave_your_hand is
 			
 			
 			dist: in integer range 0 to 15;
+--			output: out std_logic_vector(0 to 47)
+			
 			screen_trig: in std_logic;
 			screen_row: in integer range 0 to 7;
 			screen_col: in integer range 0 to 15;
@@ -77,9 +79,13 @@ architecture arch_wave_your_hand of wave_your_hand is
 	
 	signal dist_0: integer range 0 to 15;
 	signal dist_1: integer range 0 to 15;
+	
+	signal game_status: integer range 0 to 3;
 begin
 	--uss_comp_0: uss port map(clk, dist_0, uss_trig_0, uss_echo_0);
 	uss_comp_1: uss port map(clk, dist_1, uss_trig_1, uss_echo_1);
 	screen_comp: screen port map(clk, screen_trig, screen_row, screen_col, screen_led_data, screen_output);
 	man_comp: man port map(clk, rst, dist_1, screen_trig, screen_row, screen_col, screen_led_data);
+	--man_comp: man port map(clk, rst, dist_1, screen_output);
+	
 end arch_wave_your_hand;

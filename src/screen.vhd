@@ -39,7 +39,7 @@ architecture arch_screen of screen is
 	signal row: integer range 0 to 7 := 0;
 	signal col: integer range 0 to 15 := 0;
 	signal col_led: integer range 0 to 7;
-	signal enable_left: std_logic;
+	signal enable_left: std_logic := '1';
 	signal enable_right: std_logic;
 	signal led_clk: std_logic;
 begin
@@ -74,33 +74,11 @@ begin
 						row <= row + 1;
 					end if;
 					col <= col + 1;
-					
-					-- DO NOT LET IT OVERFLOW
---					if row = 7 then
---						if col = 15 then
---							col <= 0;
---							row <= 0;
---						else
---							col <= col + 1;
---						end if;
---					else
---						if col = 15 then
---							col <= 0;
---							row <= row + 1;
---						else
---							col <= col + 1;
---						end if;
---					end if;
 					trig <= '0';
 				when 3 =>
 					led_clk <= '0';
 			end case;
-			
-			if cnt = 3 then
-				cnt := 0;
-			else
-				cnt := cnt + 1;
-			end if;
+			cnt := cnt + 1;
 		end if;
 	end process;
 end arch_screen;

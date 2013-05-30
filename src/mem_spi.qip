@@ -1,0 +1,7 @@
+set_global_assignment -name IP_TOOL_NAME "ALTUFM_SPI"
+set_global_assignment -name IP_TOOL_VERSION "12.1"
+set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) "mem_spi.vhd"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "mem_spi.bsf"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "mem_spi_inst.vhd"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "mem_spi.inc"]
+set_global_assignment -name MISC_FILE [file join $::quartus(qip_path) "mem_spi.cmp"]
