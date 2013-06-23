@@ -266,7 +266,6 @@ architecture arch_man of man is
 						-- lose:
 						--		man_y = 0
 						-- 
-						-- clk_man_fall = 0 and not on_plat
 						if clk_man_fall = 0 then
 							if man_y = 0 then
 								game_status <= GS_GAME_OVER;
